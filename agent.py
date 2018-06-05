@@ -42,15 +42,63 @@ _NOT_QUEUED = [0]
 _QUEUED = [1]
 _SELECT_ALL = [2]
 
+class ActionQueue:
+
+	def __init__(self):
+		self._queue = []
+
+	def is_empty(self):
+		return not self._queue
+
+	def reset(self):
+		self._queue = []
+
+	def queue(self, action):
+		"""
+		queues an action to the action queue
+		:param action: the action(s) to be queued. Can be a single action or a list
+		"""
+		print("Queuing: ", action)
+
+		if isinstance(action, actions.FunctionCall):
+			self._queue.append(action)
+		else:
+			self._queue += action
+
+
+	def dequeue(self):
+		action = None
+		try:
+			while action is None:
+				action = self._queue.pop(0)
+		except IndexError:
+			return actions.FunctionCall(_NO_OP, [])
+
+		return action
+
+
+
+
 class SemiAgent(BaseAgent):
 
 
 	def __init__(self):
 		super().__init__()
 		self.squad_manager = SquadManager()
+		self.action_queue = ActionQueue()
 
 
 	def step(self, obs):
 		super().step(obs)
 
-		return self.squad_manager.step(obs)
+		if obs.first():
+			self.action_queue.reset()
+
+		if self.action_queue.is_empty():
+			self.action_queue.queue(self.squad_manager.step(obs))
+
+		action = self.action_queue.dequeue()
+		if action.function in obs.observation['available_actions']:
+			return action
+		else:
+			return actions.FunctionCall(_NO_OP, [])
