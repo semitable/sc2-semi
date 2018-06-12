@@ -3,6 +3,7 @@
 import math
 import os
 import random
+import time
 
 import numpy as np
 import pandas as pd
@@ -58,8 +59,6 @@ class ActionQueue:
 		queues an action to the action queue
 		:param action: the action(s) to be queued. Can be a single action or a list
 		"""
-		print("Queuing: ", action)
-
 		if isinstance(action, actions.FunctionCall):
 			self._queue.append(action)
 		else:
@@ -90,6 +89,8 @@ class SemiAgent(BaseAgent):
 
 	def step(self, obs):
 		super().step(obs)
+
+		# time.sleep(1)
 
 		if obs.first():
 			self.action_queue.reset()

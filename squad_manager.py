@@ -123,7 +123,6 @@ class SquadManager():
 		]
 
 	def engage(self):
-		print("Engaging!")
 		enemy_y, enemy_x = (self.obs.observation['feature_screen'][_PLAYER_RELATIVE] == _PLAYER_HOSTILE).nonzero()
 		return [
 			actions.FunctionCall(_ATTACK, [_NOT_QUEUED, [np.median(enemy_x), np.median(enemy_y)]])
@@ -167,8 +166,8 @@ class SquadManager():
 
 	def micro(self):
 		action_list = []
-		action_list += self.disengage_damaged()
-		action_list += self.select_onscreen()
+		# action_list += self.disengage_damaged()
+		# action_list += self.select_onscreen()
 		action_list += self.target_lowest_hp()
 
 		return action_list
