@@ -3,6 +3,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 
 from qlearn import QLearningTable
+from agent import Manager
 
 # Functions
 _NO_OP = actions.FUNCTIONS.no_op.id
@@ -44,14 +45,18 @@ _SCREEN_SIZE = 84
 _ENGAGE_RANGE = 15
 
 
-class SquadManager():
+class SquadManager(Manager):
 	"""
 	This is the squad manager class; It controls the units currently on screen
 	"""
 
 	def __init__(self, obs):
+		super().__init__()
 		self.obs = obs
 		self.qlearn = QLearningTable(actions=list(range(_MAX_ENEMIES)))
+
+	def should_execute(self, obs):
+		return False
 
 	def noops(self, N):
 		"""

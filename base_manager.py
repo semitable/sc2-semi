@@ -2,8 +2,10 @@ import numpy as np
 from pysc2.lib import features
 from scipy import spatial
 
+from agent import Manager
 from utils import Location
 from utils import locate_deposits, get_mean_player_position
+import random
 
 _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 _HIT_POINT_RATIO = features.SCREEN_FEATURES.unit_hit_points_ratio.index
@@ -28,8 +30,9 @@ class Base():
 		return "{}: {}".format(['EMPTY', 'PLAYER', 'ENEMY'][self.ownership], self.location)
 
 
-class BaseManager:
+class BaseManager(Manager):
 	def __init__(self, obs):
+		super().__init__()
 		self.obs = obs
 		np.set_printoptions(threshold=np.nan)
 
@@ -40,6 +43,15 @@ class BaseManager:
 
 		self.bases = [Base(Location(loc, None), BASE_EMPTY) for loc in bases]
 		self.bases[starting_base_index].ownership = BASE_SELF
+		self.starting_base = self.bases[starting_base_index]
+
+	def should_execute(self, obs):
+		return True
 
 	def step(self, obs):
 		self.obs = obs
+
+		return [
+			*self.starting_base.location.zoom()
+		 ]
+

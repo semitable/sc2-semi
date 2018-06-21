@@ -8,6 +8,7 @@ import time
 import numpy as np
 import pandas as pd
 
+from itertools import cycle
 from squad_manager import SquadManager
 from base_manager import BaseManager
 
@@ -43,6 +44,21 @@ _NEUTRAL_MINERAL_FIELD = 341
 _NOT_QUEUED = [0]
 _QUEUED = [1]
 _SELECT_ALL = [2]
+
+class Manager():
+
+	def __init__(self):
+		self.wants_exec_lock = False
+
+
+	def step(self, obs):
+		raise NotImplementedError("This should be implemented")
+
+	def should_execute(self, obs):
+		return False
+
+
+
 
 class ActionQueue:
 
@@ -87,9 +103,20 @@ class SemiAgent(BaseAgent):
 		self.squad_manager = None
 		self.action_queue = ActionQueue()
 
+		self.managers = []
+		self.round_robin = None
+		self.running_manager = None
+
 	def start_managers(self, obs):
 		self.squad_manager = SquadManager(obs)
 		self.base_manager = BaseManager(obs)
+
+		self.managers = [
+			self.squad_manager,
+			self.base_manager
+		]
+
+		self.round_robin = cycle(self.managers)
 
 	def step(self, obs):
 		super().step(obs)
@@ -101,7 +128,14 @@ class SemiAgent(BaseAgent):
 			self.action_queue.reset()
 
 		if self.action_queue.is_empty():
-			self.action_queue.queue(self.squad_manager.step(obs))
+			while True:
+				if self.running_manager is None or not self.running_manager.wants_exec_lock:
+					self.running_manager = next(self.round_robin)
+
+				if self.running_manager.should_execute():
+					break
+
+			self.action_queue.queue(self.running_manager.step(obs))
 
 		action = self.action_queue.dequeue()
 		if action.function in obs.observation['available_actions']:
