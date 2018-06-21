@@ -22,6 +22,9 @@ class Location:
 		self.minimap = minimap
 		self.screen = screen
 
+	def __repr__(self):
+		return "{}-{}".format(self.minimap, self.screen)
+
 
 def locate_deposits(obs):
 	X = np.argwhere(
