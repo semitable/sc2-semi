@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from pysc2.lib import features
+from pysc2.lib import actions
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from itertools import cycle
 
@@ -13,6 +14,10 @@ _PLAYER_SELF = features.PlayerRelative.SELF
 _PLAYER_NEUTRAL = features.PlayerRelative.NEUTRAL  # beacon/minerals
 _PLAYER_ENEMY = features.PlayerRelative.ENEMY
 
+_MOVE_CAMERA = actions.FUNCTIONS.move_camera.id
+_NO_OP = actions.FUNCTIONS.no_op.id
+
+
 BASE_EMPTY = 0
 BASE_SELF = 1
 BASE_ENEMY = 2
@@ -24,6 +29,11 @@ class Location:
 
 	def __repr__(self):
 		return "{}-{}".format(self.minimap, self.screen)
+
+	def zoom(self):
+		return [
+			actions.FunctionCall(_MOVE_CAMERA, [[self.minimap[1], self.minimap[0]]]),
+		]
 
 
 def locate_deposits(obs):
