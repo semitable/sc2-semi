@@ -49,8 +49,8 @@ class SquadManager():
 	This is the squad manager class; It controls the units currently on screen
 	"""
 
-	def __init__(self):
-		self.obs = None
+	def __init__(self, obs):
+		self.obs = obs
 		self.qlearn = QLearningTable(actions=list(range(_MAX_ENEMIES)))
 
 	def noops(self, N):

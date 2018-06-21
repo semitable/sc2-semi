@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from squad_manager import SquadManager
+from base_manager import BaseManager
 
 from pysc2.agents.base_agent import BaseAgent
 from pysc2.lib import actions
@@ -83,9 +84,12 @@ class SemiAgent(BaseAgent):
 
 	def __init__(self):
 		super().__init__()
-		self.squad_manager = SquadManager()
+		self.squad_manager = None
 		self.action_queue = ActionQueue()
 
+	def start_managers(self, obs):
+		self.squad_manager = SquadManager(obs)
+		self.base_manager = BaseManager(obs)
 
 	def step(self, obs):
 		super().step(obs)
@@ -93,6 +97,7 @@ class SemiAgent(BaseAgent):
 		# time.sleep(1)
 
 		if obs.first():
+			self.start_managers(obs)
 			self.action_queue.reset()
 
 		if self.action_queue.is_empty():
