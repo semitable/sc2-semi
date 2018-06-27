@@ -3,7 +3,8 @@ from pysc2.lib import actions
 from pysc2.lib import features
 
 from qlearn import QLearningTable
-from agent import Manager
+from managers import Manager
+from utils import noops
 
 # Functions
 _NO_OP = actions.FUNCTIONS.no_op.id
@@ -57,12 +58,6 @@ class SquadManager(Manager):
 
 	def should_execute(self, obs):
 		return False
-
-	def noops(self, N):
-		"""
-		returns a list with N no ops
-		"""
-		return [actions.FunctionCall(_NO_OP, []) for _ in range(N)]
 
 	def is_engaged(self):
 		enemy_y, enemy_x = (self.obs.observation['feature_screen'][_PLAYER_RELATIVE] == _PLAYER_HOSTILE).nonzero()
@@ -150,7 +145,7 @@ class SquadManager(Manager):
 		return [
 			actions.FunctionCall(_SELECT_UNIT, [[0], [ms[:, 2].argmin()]]),
 			*self.disengage(),
-			*self.noops(7)
+			*noops(7)
 		]
 
 	def target_lowest_hp(self):

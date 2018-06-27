@@ -13,7 +13,7 @@ from pysc2.env import remote_sc2_env
 from agent import SemiAgent
 
 AGENT = SemiAgent()
-RACE = sc2_env.Race.protoss
+RACE = sc2_env.Race.terran
 STEP_MUL = 8
 AGENT_INTERFACE_FORMAT = sc2_env.parse_agent_interface_format(
     feature_screen=84,

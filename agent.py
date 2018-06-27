@@ -9,12 +9,17 @@ import numpy as np
 import pandas as pd
 
 from itertools import cycle
-from squad_manager import SquadManager
-from base_manager import BaseManager
+from managers import BaseManager, SquadManager
 
 from pysc2.agents.base_agent import BaseAgent
 from pysc2.lib import actions
 from pysc2.lib import features
+
+from s2clientprotocol import (
+    sc2api_pb2 as sc_pb,
+	common_pb2 as sc_common
+)
+from utils import get_static_data
 
 DATA_FILE = 'sparse_agent_data'
 
@@ -44,20 +49,6 @@ _NEUTRAL_MINERAL_FIELD = 341
 _NOT_QUEUED = [0]
 _QUEUED = [1]
 _SELECT_ALL = [2]
-
-class Manager():
-
-	def __init__(self):
-		self.wants_exec_lock = False
-
-
-	def step(self, obs):
-		raise NotImplementedError("This should be implemented")
-
-	def should_execute(self, obs):
-		return False
-
-
 
 
 class ActionQueue:
@@ -107,6 +98,14 @@ class SemiAgent(BaseAgent):
 		self.round_robin = None
 		self.running_manager = None
 
+		# result = sc_pb.RequestData(
+        #     ability_id=True,
+        #     unit_type_id=True,
+        #     upgrade_id=True
+        # )
+		data = get_static_data()
+		print(data)
+
 	def start_managers(self, obs):
 		self.squad_manager = SquadManager(obs)
 		self.base_manager = BaseManager(obs)
@@ -132,9 +131,9 @@ class SemiAgent(BaseAgent):
 				if self.running_manager is None or not self.running_manager.wants_exec_lock:
 					self.running_manager = next(self.round_robin)
 
-				if self.running_manager.should_execute():
+				if self.running_manager.should_execute(obs):
 					break
-
+			print("Executing: {}".format(str(self.running_manager)))
 			self.action_queue.queue(self.running_manager.step(obs))
 
 		action = self.action_queue.dequeue()
