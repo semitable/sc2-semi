@@ -4,10 +4,9 @@ from scipy import spatial
 
 from collections import defaultdict
 import build_orders
-from constants import what_builds
 from managers import Manager
 from utils import Location
-from utils import locate_deposits, get_mean_player_position, noops
+from utils import locate_deposits, get_mean_player_position, noops, what_builds
 import random
 
 _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
@@ -50,12 +49,12 @@ class Base():
 
 	def produce(self, unit):
 		print("Producing: {}".format(str(unit)))
-		producer = what_builds[unit][0][0]
-		if self.buildings[producer]:
-			location = self.buildings[producer][0]
+		building, ability = what_builds(unit)
+		if self.buildings[building]:
+			location = self.buildings[building][0]
 			return [
 				*location.select(),
-				actions.FunctionCall(what_builds[unit][1], [_QUEUED])
+				actions.FunctionCall(ability, [_QUEUED])
 			]
 		else:
 			return []

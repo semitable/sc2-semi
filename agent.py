@@ -98,14 +98,6 @@ class SemiAgent(BaseAgent):
 		self.round_robin = None
 		self.running_manager = None
 
-		# result = sc_pb.RequestData(
-        #     ability_id=True,
-        #     unit_type_id=True,
-        #     upgrade_id=True
-        # )
-		data = get_static_data()
-		print(data)
-
 	def start_managers(self, obs):
 		self.squad_manager = SquadManager(obs)
 		self.base_manager = BaseManager(obs)

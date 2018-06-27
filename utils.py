@@ -1,14 +1,17 @@
 import pickle
 
 import numpy as np
+from game_data import GameData
 from pysc2 import run_configs, maps
-from pysc2.lib import actions
-from pysc2.lib import features
+from pysc2.lib import features, units, actions
 from s2clientprotocol import (
-	sc2api_pb2 as sc_pb,
-	common_pb2 as sc_common
+    sc2api_pb2 as sc_pb,
+    common_pb2 as common_pb,
+    query_pb2 as query_pb,
+    debug_pb2 as debug_pb
 )
 from sklearn.cluster import MeanShift, estimate_bandwidth
+from functools import lru_cache
 
 STATIC_DATA_PICKLE_PATH = 'C:\\Users\\AlMak Semitable\\Documents\\GitHub\\starcraft\\sc2-semi\\static_data.pk'
 
@@ -32,6 +35,12 @@ BASE_ENEMY = 2
 _NOT_QUEUED = [False]
 _QUEUED = [True]
 
+_ability_map = {
+	actions.FUNCTIONS.Train_Marine_quick.id: units.Terran.Barracks,
+	actions.FUNCTIONS.Train_SCV_quick.id: units.Terran.CommandCenter,
+
+}
+
 
 class Location:
 	def __init__(self, minimap, screen):
@@ -52,7 +61,7 @@ class Location:
 			actions.FunctionCall(_SELECT_POINT, [_NOT_QUEUED, self.screen]),
 		]
 
-
+@lru_cache(maxsize=1)
 def get_static_data():
 	"""Retrieve static data from the game."""
 
@@ -70,9 +79,9 @@ def get_static_data():
 		create = sc_pb.RequestCreateGame(local_map=sc_pb.LocalMap(
 			map_path=m.path, map_data=m.data(run_config)))
 		create.player_setup.add(type=sc_pb.Participant)
-		create.player_setup.add(type=sc_pb.Computer, race=sc_common.Random,
+		create.player_setup.add(type=sc_pb.Computer, race=common_pb.Random,
 								difficulty=sc_pb.VeryEasy)
-		join = sc_pb.RequestJoinGame(race=sc_common.Random,
+		join = sc_pb.RequestJoinGame(race=common_pb.Terran,
 									 options=sc_pb.InterfaceOptions(raw=True))
 
 		controller.create_game(create)
@@ -83,6 +92,10 @@ def get_static_data():
 			static_data = pickle.dump(static_data, f, protocol=pickle.HIGHEST_PROTOCOL)
 		return static_data
 
+@lru_cache(maxsize=1)
+def get_game_data():
+	""" :return a GameDataType object (parsed proto) """
+	return GameData(get_static_data())
 
 def noops(N):
 	"""
@@ -90,6 +103,16 @@ def noops(N):
 	"""
 	return [actions.FunctionCall(_NO_OP, []) for _ in range(N)]
 
+
+def what_builds(unit):
+	"""
+	:param unit:
+	:return: A tuple: (building, creation_ability)
+	"""
+	data = get_game_data()
+	unit_data = data.units[unit]
+	creation_ability = unit_data.creation_ability
+	return (_ability_map[creation_ability], creation_ability)
 
 def locate_deposits(obs):
 	X = np.argwhere(
